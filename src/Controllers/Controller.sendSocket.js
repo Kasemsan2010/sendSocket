@@ -6,26 +6,43 @@ getfile_json = () => {
   const data = require("../Utils/data.json");
   return data.data_array;
 };
+random_item = (item) => {
+
+  return item[Math.floor(Math.random() * item.length)];
+
+};
 
 module.exports.sendSocket = async (req, res, next) => {
-  const data = await getfile_json();
+  let data = await getfile_json();
 
-  client.connect(3030, "10.12.11.44", () => {
-    console.log("Connected");
-    client.write("Hello");
-  });
+  data_result = () => {
+    client.on('data', function (data) {
+      console.log('Received: ' + data);
+      client.end();
+    });
+  }
 
-  console.log(data[0]);
+  sendSock_stop = () => {
+    client.on('end', () => {
+      console.log('disconnected from server');
+    });
+  }
 
-  const data2 = data[0];
+  sendSocket_start = () => {
+    client.connect(3030, "10.12.11.44", () => {
+      console.log("Connected");
+      setInterval(() => {
+        client.write(random_item(data));
+        console.log(data);
+        data_result();
+      }, 5000);
+    });
+  }
 
-  client.on(data2, function (data2) {
-    console.log("Received " + data2.length + " bytes\n" + data2);
-  });
 
-  client.on("close", function () {
-    console.log("Connection closed");
-  });
+  sendSocket_start();
+
+
 
   res.send("sendSocket");
 };
